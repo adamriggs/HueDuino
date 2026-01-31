@@ -179,24 +179,28 @@ void handlePhotocell() {
   */
   photocellCount += 10;
   if(photocellCount >= PHOTOCELLDELAY) {
-    float unit = .02; 
+    float unit = .02; // percentage of brightness 
 
+    // these are for readings from the sensor
     int reading = getPhotocellReading();
     int readingMax = 1023;
     int readingTarget = 125;
-    int readingUnit = readingMax * unit;
+    int readingUnit = readingMax * unit;  // the amount of change that should be read from the sensor from an adjustment to the brightness
 
+    // these are for the hue api brightness levels
     int brightness = 127;
     int brightnessMax = 254;
     int brightnessUnit = brightnessMax * unit;
 
-    String payload = getGroupState(bedroomID);
-    int briStart = payload.indexOf("bri\":");
-    int briEnd = payload.indexOf(",", briStart);
-    String currentBrightness = payload.substring(briStart + 5, briEnd);
-    int currentBrightnessInt = currentBrightness.toInt();
-    int newBrightness = currentBrightnessInt;
+    // these are for building the header data
+    String payload = getGroupState(bedroomID);  // get the state of the room from the Hue api
+    int briStart = payload.indexOf("bri\":"); // find where the brightness level reading starts is in the string
+    int briEnd = payload.indexOf(",", briStart);  // find where it ends
+    String currentBrightness = payload.substring(briStart + 5, briEnd); // get the number from the string
+    int currentBrightnessInt = currentBrightness.toInt(); // convert it to an int
+    int newBrightness = currentBrightnessInt; // set up a new variable which will be adjusted if needed
 
+    // this is the amount of change that we would like to see in the sensor
     int delta = abs(reading - readingTarget);
 
     // Serial.print("reading: ");
@@ -226,7 +230,7 @@ void handlePhotocell() {
     // Serial.print("currentBrightnessInt: ");
     // Serial.println(currentBrightnessInt);
 
-    if(delta > readingUnit) {
+    if(delta > readingUnit) { // if the change is greater than one unit of adjustment
       if(reading < readingTarget) {
         // turn lights up
         newBrightness += brightnessUnit;
