@@ -41,11 +41,15 @@ bool buttonStateOld;
 bool ledStateOld = true;
 float ledBrightness = 0.000001;
 
+String floorlampID = "12"; // Living room floor Lamp
+String bedroomID = "84"; // Bedroom group
 String plug4ID = "15"; // Plug4
 String nightstandID = "8"; // Nightstand
-String floorlampID = "12"; // Floor Lamp
 String wallID = "5"; // Wall
-String bedroomID = "84"; // Bedroom
+String windowID = "10"; // window
+String shelfID = "10"; // shelf
+String bedroomLights[4] = {nightstandID, wallID, windowID, shelfID};
+
 
 String currentLightID = wallID;
 
@@ -242,11 +246,22 @@ void handlePhotocell() {
       }
     }
 
-    // Serial.print("newBrightness: ");
-    // Serial.println(newBrightness);
+    Serial.print("newBrightness: ");
+    Serial.println(newBrightness);
 
     if(newBrightness != currentBrightnessInt) {
-      setGroupBrightness(newBrightness, bedroomID);
+      if(newBrightness <= 1) {
+        // if the lights should be turned off at this point
+        for(String light: bedroomLights) {
+          setLightState(false, light);
+        }
+      } else {
+        // make sure the lights are on first
+        for(String light: bedroomLights) {
+          setLightState(true, light);
+        }
+        setGroupBrightness(newBrightness, bedroomID);
+      }
     }
 
     // Serial.println("*****");
@@ -348,7 +363,7 @@ String getGroupState(String groupID) {
 }
 
 void setLightState(bool newState, String lightID) {
-  // Serial.println("setLightSTate()");
+  // Serial.println("setLightState()");
   if(WiFi.status()== WL_CONNECTED){
 
     String url = BASE_URL + "lights/" + lightID + "/state";
@@ -382,6 +397,27 @@ void setLightBrightness(long brightness, String lightID) {
     else {
       // Serial.println("WiFi Disconnected");
     }
+}
+
+void setGroupState(bool newState, String groupID) {
+  Serial.println("setGroupState()");
+  if(WiFi.status()== WL_CONNECTED){
+
+    String url = BASE_URL + "groups/" + groupID + "/action";
+
+    Serial.print("url: ");
+    Serial.println(url);
+
+    String httpRequestData = "{\"on\":false}";
+    if(newState == true) {
+      httpRequestData = "{\"on\":true}";
+    }
+
+    httpPut(url, httpRequestData);
+  }
+  else {
+    // Serial.println("WiFi Disconnected");
+  }
 }
 
 void setGroupBrightness(long brightness, String groupID) {
@@ -452,8 +488,8 @@ int httpPut(String url, String httpRequestData) {
   int httpResponseCode = http.PUT(httpRequestData);
   
   if (httpResponseCode>0) {
-    // Serial.print("HTTP Response code: ");
-    // Serial.println(httpResponseCode);
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
 
     String payload = http.getString();
     // Serial.println(payload);
