@@ -246,8 +246,13 @@ void handlePhotocell() {
       }
     }
 
-    Serial.print("newBrightness: ");
-    Serial.println(newBrightness);
+    if(newBrightness >= (int(brightnessMax * .5))) {
+      // don't let it get too bright
+      newBrightness = currentBrightnessInt;
+    }
+
+    // Serial.print("newBrightness: ");
+    // Serial.println(newBrightness);
 
     if(newBrightness != currentBrightnessInt) {
       if(newBrightness <= 1) {
@@ -488,8 +493,8 @@ int httpPut(String url, String httpRequestData) {
   int httpResponseCode = http.PUT(httpRequestData);
   
   if (httpResponseCode>0) {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
+    // Serial.print("HTTP Response code: ");
+    // Serial.println(httpResponseCode);
 
     String payload = http.getString();
     // Serial.println(payload);
